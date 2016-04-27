@@ -28,9 +28,22 @@ UnitTestData::UnitTestData(QWidget *parent) :
     fileModel->setNameFilters(filters);
     fileModel->setNameFilterDisables(false);
 
+    ui->filterEdit->setText(filters.takeFirst());
+
+    filterModel = new QFileSystemModel();
+    filterModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
+    filterModel->setNameFilters(filters);
+    filterModel->setNameFilterDisables(false);
+
 
 
     ui->listView->setModel(fileModel);
+    ui->FilterView->setModel(filterModel);
+
+
+    ui->comboFilter->addItem(tr("Regular expression"), QRegExp::RegExp);
+    ui->comboFilter->addItem(tr("Wildcard"), QRegExp::Wildcard);
+    ui->comboFilter->addItem(tr("Fixed string"), QRegExp::FixedString);
 
 }
 
@@ -43,6 +56,9 @@ void UnitTestData::on_treeView_clicked(const QModelIndex &index)
 {
     QString sPath = dirModel->fileInfo(index).absoluteFilePath();
     ui->listView->setRootIndex(fileModel->setRootPath(sPath));
+    ui->FilterView->setRootIndex(filterModel->setRootPath(sPath));
+
+
 
 }
 
@@ -55,8 +71,7 @@ void UnitTestData::updateCurrentFile(QString filePath)
 
 void UnitTestData::on_listView_clicked(const QModelIndex &index)
 {
-    QString sPath = fileModel->fileInfo(index).absoluteFilePath();
-    updateCurrentFile(sPath);
+
 }
 
 QString UnitTestData::read_Current_File(QString filePath)
@@ -84,10 +99,24 @@ QString UnitTestData::read_Current_File(QString filePath)
 
 void UnitTestData::on_btnFilter_clicked()
 {
-    QString expression = this->ui->filterEdit->text();
-    if (!expression.isNull())
-    {
-        QRegExp rx(expression);
+    QRegExp::PatternSyntax syntax =
+            QRegExp::PatternSyntax(ui->comboFilter->itemData(
+                                       ui->comboFilter->currentIndex()).toInt());
+    Qt::CaseSensitivity caseSensitivity =
+            ui->chkCaseLock->isChecked() ? Qt::CaseSensitive
+                                         : Qt::CaseInsensitive;
+    QRegExp regExp(ui->filterEdit->text(), caseSensitivity,syntax);
+
+    QStringList filters;
+    filters << ui->filterEdit->text();
+
+    filterModel->setNameFilters(filters);
 
 
+}
+
+void UnitTestData::on_FilterView_clicked(const QModelIndex &index)
+{
+    QString sPath = filterModel->fileInfo(index).absoluteFilePath();
+    updateCurrentFile(sPath);
 }

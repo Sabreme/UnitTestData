@@ -26,10 +26,13 @@ private slots:
 
     void on_btnFilter_clicked();
 
+    void on_FilterView_clicked(const QModelIndex &index);
+
 private:
     Ui::UnitTestData *ui;
     QFileSystemModel * dirModel;
     QFileSystemModel * fileModel;
+    QFileSystemModel * filterModel;
 };
 
 #endif // UNITTESTDATA_H
